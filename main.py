@@ -1,5 +1,6 @@
 import time
 import os
+import subprocess
 from flask import Flask
 from threading import Thread
 from selenium import webdriver
@@ -7,8 +8,8 @@ from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
-import chromedriver_autoinstaller
 
+# Flask-server for keep alive
 app = Flask('')
 
 @app.route('/')
@@ -22,13 +23,18 @@ def keep_alive():
     t = Thread(target=run)
     t.start()
 
+def install_chrome():
+    subprocess.run('apt-get update', shell=True, check=True)
+    subprocess.run('apt-get install -y chromium-browser', shell=True, check=True)
+
 def login_and_fill():
     print("Starter nettleser...")
-    chromedriver_autoinstaller.install()
+
     chrome_options = Options()
     chrome_options.add_argument("--headless")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.binary_location = "/usr/bin/chromium-browser"
 
     driver = webdriver.Chrome(options=chrome_options)
 
@@ -58,31 +64,3 @@ def login_and_fill():
         wait.until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(),'Neste')]"))).click()
 
         print("Velger 6 timer parkering...")
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//mat-radio-button//div[contains(text(),'6 timer')]"))).click()
-        wait.until(EC.element_to_be_clickable((By.XPATH, "//span[contains(text(),'Neste')]"))).click()
-
-        print("Ferdig!")
-        driver.quit()
-
-    except Exception as e:
-        print(f"En feil oppstod: {e}")
-        driver.quit()
-
-keep_alive()
-
-while True:
-    if os.path.exists("switch.txt"):
-        with open("switch.txt", "r") as f:
-            status = f.read().strip()
-
-        if status == "ON":
-            login_and_fill()
-            print("Venter 6 timer og 3 minutter...")
-            time.sleep((6 * 60 + 3) * 60)
-        else:
-            print("Bot er AV. Sjekker igjen om 1 minutt.")
-            time.sleep(60)
-    else:
-        print("Fant ikke switch.txt, lager en ny som OFF...")
-        with open("switch.txt", "w") as f:
-            f.write("OFF")
