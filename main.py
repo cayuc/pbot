@@ -1,6 +1,5 @@
 import time
 import os
-import subprocess
 from flask import Flask
 from threading import Thread
 from selenium import webdriver
@@ -22,11 +21,6 @@ def run():
 def keep_alive():
     t = Thread(target=run)
     t.start()
-
-def install_chrome():
-    print("Installerer Chromium...")
-    subprocess.run('apt-get update', shell=True, check=True)
-    subprocess.run('apt-get install -y chromium-browser', shell=True, check=True)
 
 def login_and_fill():
     print("Starter nettleser...")
@@ -78,9 +72,6 @@ def login_and_fill():
 
 # Start Flask-server
 keep_alive()
-
-# Installer Chromium-browser
-install_chrome()
 
 # Start hoved-loop
 while True:
